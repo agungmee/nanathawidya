@@ -276,8 +276,13 @@ export default function ProductDetailPage() {
               { icon: CreditCard, step: "3", title: "Pembayaran", desc: "Lakukan pembayaran sesuai kesepakatan" },
               { icon: Package, step: "4", title: "Produksi", desc: "Tim kami memproses pesanan Anda" },
               { icon: Truck, step: "5", title: "Pengiriman", desc: "Pesanan dikirim & siap digunakan" },
-            ].map((item) => (
-              <div key={item.step} className="card p-4 sm:p-5 flex sm:flex-col items-start sm:text-center gap-3 sm:gap-0 hover:shadow-md transition-all group relative">
+            ].map((item, idx) => (
+              <div
+                key={item.step}
+                className={`card p-4 sm:p-5 flex sm:flex-col items-start sm:text-center gap-3 sm:gap-0 hover:shadow-md transition-all group relative ${
+                  idx === 4 ? "col-span-2 sm:col-span-1 sm:w-auto w-full max-w-[240px] justify-self-center" : ""
+                }`}
+              >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-accent/10 rounded-xl flex items-center justify-center shrink-0 sm:mx-auto sm:mb-3 group-hover:bg-accent group-hover:text-white transition-all">
                   <item.icon size={20} className="text-accent group-hover:text-white transition-all" />
                 </div>
