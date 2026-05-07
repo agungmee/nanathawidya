@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  password  String?
+  phone     String?
+  role      String    @default("customer")
+  image     String?
+
+  address   Json?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  orders     Order[]
+  addresses  Address[]
+}
+
+model Address {
+  id            String  @id @default(cuid())
+  userId        String
+  label         String?
+  recipientName String
+  phone         String
+  address       String
+  city          String
+  province      String
+  postalCode    String?
+  isDefault     Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  image       String?
+  description String?
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String  @unique
+  description String?
+  price       Float   @default(0)
+
+  image       String?
+  imageUrl    String?
+  images      Json?
+  galleryUrls Json?
+
+  isActive     Boolean @default(true)
+  isFeatured   Boolean @default(false)
+
+  category     Category         @relation(fields: [categoryId], references: [id])
+  orderItems   OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isActive, isFeatured])
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  userId        String?
+  invoiceNumber String?  @unique
+  hashCode      String   @unique
+  totalAmount   Float
+  status        String   @default("pending")
+  whatsappSent  Boolean  @default(false)
+
+  user   User?       @relation(fields: [userId], references: [id])
+  items  OrderItem[]
+  logs   OrderLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([hashCode])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String @id @default(cuid())
+  orderId     String
+  productId   String?
+  productName String
+  quantity    Int
+  price       Float
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product? @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model OrderLog {
+  id         String   @id @default(cuid())
+  orderId    String
+  fromStatus String?
+  toStatus   String
+  userId     String?
+  note       String?
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String?
+  subtitle  String?
+  type      String   @default("image")
+  image     String?
+  url       String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
