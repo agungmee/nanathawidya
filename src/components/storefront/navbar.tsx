@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, ShoppingCart, Menu, X, Phone, Home, Grid3X3 } from "lucide-react";
+import { Search, ShoppingCart, Menu, X, Phone, Home } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import { useCartStore } from "@/lib/cart-store";
 
@@ -39,7 +39,6 @@ export function Navbar() {
 
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
             <Link href="/" className="hover:text-accent transition-colors">Beranda</Link>
-            <Link href="/category/karung-plastik" className="hover:text-accent transition-colors">Katalog</Link>
             <Link href="/contact" className="hover:text-accent transition-colors">Kontak</Link>
             <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
               Konsultasi
@@ -99,10 +98,6 @@ export function Navbar() {
               <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
                 <Home size={20} className="text-accent" />
                 <span className="text-sm font-medium">Beranda</span>
-              </Link>
-              <Link href="/category/karung-plastik" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
-                <Grid3X3 size={20} className="text-accent" />
-                <span className="text-sm font-medium">Katalog Produk</span>
               </Link>
               <Link href="/contact" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
                 <Phone size={20} className="text-accent" />

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Grid3X3, Phone, ShoppingCart } from "lucide-react";
+import { Home, Phone, ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/cart-store";
 
 export function BottomNav() {
@@ -12,7 +12,6 @@ export function BottomNav() {
 
   const links = [
     { href: "/", icon: Home, label: "Beranda" },
-    { href: "/category/karung-plastik", icon: Grid3X3, label: "Katalog" },
     { href: "/contact", icon: Phone, label: "Kontak" },
     { href: "#", icon: ShoppingCart, label: `Keranjang${itemCount > 0 ? ` (${itemCount})` : ""}`, onClick: toggleCart },
 
