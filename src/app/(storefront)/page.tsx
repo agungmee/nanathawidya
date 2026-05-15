@@ -107,7 +107,7 @@ export default async function HomePage() {
               <p className="text-sm text-muted mt-1">Produk terbaik pilihan untuk Anda</p>
             </div>
             <Link
-              href="/search"
+              href="/search?sort=best_selling"
               className="text-sm text-accent font-semibold hover:underline flex items-center gap-1"
             >
               Lihat Semua <span>&rarr;</span>

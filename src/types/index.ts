@@ -108,9 +108,10 @@ export interface Banner {
   storeId?: string;
 }
 
-export type SortOption = "newest" | "cheapest" | "most_expensive" | "name_az" | "name_za";
+export type SortOption = "newest" | "cheapest" | "most_expensive" | "name_az" | "name_za" | "best_selling";
 
 export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "best_selling", label: "Terlaris" },
   { value: "newest", label: "Terbaru" },
   { value: "cheapest", label: "Termurah" },
   { value: "most_expensive", label: "Termahal" },

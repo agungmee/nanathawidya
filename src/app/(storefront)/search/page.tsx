@@ -10,8 +10,9 @@ import type { Product } from "@/types";
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams?.get("q") || "";
+  const initialSort = (searchParams?.get("sort") as SortOption) || "best_selling";
   const [query, setQuery] = useState(initialQuery);
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>(initialSort);
   const [priceRange, setPriceRange] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -47,6 +48,7 @@ export default function SearchPage() {
       case "most_expensive": sorted.sort((a, b) => b.price - a.price); break;
       case "name_az": sorted.sort((a, b) => a.name.localeCompare(b.name)); break;
       case "name_za": sorted.sort((a, b) => b.name.localeCompare(a.name)); break;
+      case "best_selling": sorted.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); break;
     }
     return sorted;
   }, [query, sortBy, priceRange, allProducts]);
@@ -108,7 +110,7 @@ export default function SearchPage() {
                   ))}
                 </select>
               </div>
-              <button onClick={() => { setSortBy("newest"); setPriceRange(0); }} className="flex items-center gap-1 text-xs text-muted hover:text-primary self-end pb-2">
+              <button onClick={() => { setSortBy("best_selling"); setPriceRange(0); }} className="flex items-center gap-1 text-xs text-muted hover:text-primary self-end pb-2">
                 <X size={14} /> Reset
               </button>
             </div>
