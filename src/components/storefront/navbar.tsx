@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, ShoppingCart, Menu, X, Phone, Printer, Home, Grid3X3 } from "lucide-react";
+import { Search, ShoppingCart, Menu, X, Phone, Home, Grid3X3 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import { useCartStore } from "@/lib/cart-store";
-import { WA_PHONE } from "@/lib/store-data";
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const totalItems = useCartStore((s) => s.totalItems());
   const toggleCart = useCartStore((s) => s.toggleCart);
+
+  useEffect(() => {
+    fetch("/api/settings").then((r) => r.ok ? r.json() : {}).then(setSettings);
+  }, []);
+
+  const waPhone = settings.wa_phone || "6282139742007";
+  const logoUrl = settings.logo || "https://everz-digital.site/wp-content/uploads/2026/05/70d9c3b2-65bf-4771-8d82-611a4b77aa13-removebg-preview.png";
 
   return (
     <header className="bg-primary text-white sticky top-0 z-50 shadow-lg">
@@ -24,8 +31,8 @@ export function Navbar() {
 
           <Link href="/" className="flex items-center">
             <img
-              src="https://everz-digital.site/wp-content/uploads/2026/05/70d9c3b2-65bf-4771-8d82-611a4b77aa13-removebg-preview.png"
-              alt="PT. Nirwasita Athawidya Nusantara"
+              src={logoUrl}
+              alt={settings.company_name || "PT. Nirwasita Athawidya Nusantara"}
               className="h-10 w-auto"
             />
           </Link>
@@ -34,7 +41,7 @@ export function Navbar() {
             <Link href="/" className="hover:text-accent transition-colors">Beranda</Link>
             <Link href="/category/karung-plastik" className="hover:text-accent transition-colors">Katalog</Link>
             <Link href="/contact" className="hover:text-accent transition-colors">Kontak</Link>
-            <a href={`https://wa.me/${WA_PHONE}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
+            <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
               Konsultasi
             </a>
           </nav>
@@ -51,7 +58,7 @@ export function Navbar() {
                 </span>
               )}
             </button>
-            <a href={`https://wa.me/${WA_PHONE}`} target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-accent-hover transition-all">
+            <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-accent-hover transition-all">
               <Phone size={16} />
               <span>Hubungi Kami</span>
             </a>
@@ -101,7 +108,7 @@ export function Navbar() {
                 <Phone size={20} className="text-accent" />
                 <span className="text-sm font-medium">Kontak Kami</span>
               </Link>
-              <a href={`https://wa.me/${WA_PHONE}`} onClick={() => setMenuOpen(false)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
+              <a href={`https://wa.me/${waPhone}`} onClick={() => setMenuOpen(false)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
                 <WhatsAppIcon size={20} className="text-accent" />
                 <span className="text-sm font-medium">Konsultasi Gratis</span>
               </a>

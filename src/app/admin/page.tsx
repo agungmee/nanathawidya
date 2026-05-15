@@ -1,39 +1,74 @@
 import Link from "next/link";
 import { Package, Tags, Image, MessageSquare, ShoppingBag, ArrowRight } from "lucide-react";
 import { auth } from "@/lib/auth";
-import { getAdminClient } from "@/lib/pocketbase";
 import { DashboardCharts } from "./dashboard-charts";
 
 export const dynamic = "force-dynamic";
+
+const PB_URL = () => process.env.POCKETBASE_URL || 'http://127.0.0.1:8090';
+
+async function fetchWithToken(url: string, token: string) {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) return { items: [] };
+  return res.json();
+}
+
+async function getAdminToken() {
+  const email = process.env.POCKETBASE_ADMIN_EMAIL;
+  const password = process.env.POCKETBASE_ADMIN_PASSWORD;
+  if (!email || !password) return "";
+  const res = await fetch(`${PB_URL()}/api/collections/_superusers/auth-with-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identity: email, password }),
+  });
+  if (!res.ok) return "";
+  const data = await res.json();
+  return data.token || "";
+}
 
 async function getStats() {
   try {
     const session = await auth();
     if (!session?.user) return null;
 
-    const pb = await getAdminClient();
-    const store = await pb.collection('stores').getFirstListItem(`slug="${process.env.POCKETBASE_STORE_SLUG || 'nanathawidya'}"`);
+    const token = await getAdminToken();
+    const slug = process.env.POCKETBASE_STORE_SLUG || 'nanathawidya';
+    const storeRes = await fetchWithToken(
+      `${PB_URL()}/api/collections/stores/records?filter=${encodeURIComponent(`slug="${slug}"`)}`, token
+    );
+    const store = storeRes.items?.[0];
+    if (!store) return null;
     const storeId = store.id;
 
-    const [products, categories, banners, messages, orders] = await Promise.all([
-      pb.collection('products').getFullList({ filter: `storeId = "${storeId}"`, fields: 'id' }),
-      pb.collection('categories').getFullList({ filter: `storeId = "${storeId}"`, fields: 'id' }),
-      pb.collection('banners').getFullList({ filter: `storeId = "${storeId}" && isActive = true`, fields: 'id' }),
-      pb.collection('contactMessages').getFullList({ filter: `storeId = "${storeId}"`, fields: 'id,isRead' }),
-      pb.collection('orders').getFullList({
-        filter: `storeId = "${storeId}"`,
-        sort: '-created',
-        fields: 'id,status,invoiceNumber,totalAmount,items,created',
-      }),
+    const [productsData, categoriesData, bannersData, messagesData, ordersData] = await Promise.all([
+      fetchWithToken(
+        `${PB_URL()}/api/collections/products/records?filter=${encodeURIComponent(`storeId = "${storeId}"`)}&fields=id`, token
+      ),
+      fetchWithToken(
+        `${PB_URL()}/api/collections/categories/records?filter=${encodeURIComponent(`storeId = "${storeId}"`)}&fields=id`, token
+      ),
+      fetchWithToken(
+        `${PB_URL()}/api/collections/banners/records?filter=${encodeURIComponent(`storeId = "${storeId}" && isActive = true`)}&fields=id`, token
+      ),
+      fetchWithToken(
+        `${PB_URL()}/api/collections/contactMessages/records?filter=${encodeURIComponent(`storeId = "${storeId}"`)}&fields=id,isRead`, token
+      ),
+      fetchWithToken(
+        `${PB_URL()}/api/collections/orders/records?filter=${encodeURIComponent(`storeId = "${storeId}"`)}&sort=-created&fields=id,status,invoiceNumber,totalAmount,items,created`, token
+      ),
     ]);
+
+    const messages = messagesData.items || [];
+    const orders = ordersData.items || [];
 
     const unreadMessages = messages.filter((m: any) => !m.isRead).length;
     const pendingOrders = orders.filter((o: any) => o.status === "pending").length;
 
     return {
-      totalProducts: products.length,
-      totalCategories: categories.length,
-      totalBanners: banners.length,
+      totalProducts: productsData.items?.length || 0,
+      totalCategories: categoriesData.items?.length || 0,
+      totalBanners: bannersData.items?.length || 0,
       totalMessages: messages.length,
       unreadMessages,
       totalOrders: orders.length,

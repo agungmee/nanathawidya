@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { resolveStoreId, buildStoreFilter } from "@/lib/pocketbase";
 import { ProductDetailClient } from "./product-detail-client";
-import { Phone, Printer, Mail, Truck, MessageSquare } from "lucide-react";
+import { StoreFooter } from "@/components/storefront/store-footer";
 
 interface Props {
   params: { slug: string };
@@ -65,9 +65,20 @@ export default async function ProductDetailPage({ params }: Props) {
 
     if (!product) notFound();
 
-    const [categories] = await Promise.all([
+    const [categories, settings, storeData] = await Promise.all([
       fetchAll<any>('categories', buildStoreFilter(storeId), 'name'),
+      fetchAll<any>('settings', buildStoreFilter(storeId)),
+      fetchAll<any>('stores', `id = "${storeId}"`),
     ]);
+
+    const store = storeData[0] || {};
+    const settingsMap: Record<string, string> = {};
+    for (const s of settings) {
+      settingsMap[s.key] = String(s.value);
+    }
+    settingsMap.company_name = store.name || "";
+    settingsMap.logo = store.logo || "";
+    settingsMap.description = store.description || "";
 
     const category = categories.find((c: any) => c.id === product.categoryId);
     const galleryUrls = (product.galleryUrls as string[]) || [];
@@ -127,75 +138,7 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
         </section>
 
-        {/* FOOTER */}
-        <footer className="bg-primary text-white mt-10">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-              <div>
-                <div className="font-bold text-lg mb-4">
-                  PT.<span className="text-accent">Nirwasita Athawidya Nusantara</span>
-                </div>
-                <p className="text-sm text-white/70 leading-relaxed">
-                  Produsen karung plastik PP woven, laminasi, BOPP, dan plastik packing custom. Kualitas terbaik, harga pabrik, melayani partai besar & kecil.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-bold text-sm mb-4 uppercase tracking-wider text-accent">Produk</h3>
-                <ul className="space-y-2 text-sm text-white/70">
-                  {categories.map((cat: any) => (
-                    <li key={cat.id}>
-                      <Link href={`/category/${cat.slug}`} className="hover:text-accent transition-colors">{cat.name}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-bold text-sm mb-4 uppercase tracking-wider text-accent">Layanan</h3>
-                <ul className="space-y-2 text-sm text-white/70">
-                  <li><Link href="/contact" className="hover:text-accent transition-colors">Kontak Kami</Link></li>
-                  <li><a href="https://wa.me/6282139742007" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Konsultasi Gratis</a></li>
-                  <li><span className="cursor-default">Cetak Custom Karung</span></li>
-                  <li><span className="cursor-default">Cetak Plastik Packing</span></li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-bold text-sm mb-4 uppercase tracking-wider text-accent">Kontak</h3>
-                <ul className="space-y-2 text-sm text-white/70">
-                  <li className="flex items-center gap-2">
-                    <Phone size={14} className="text-accent flex-shrink-0" />
-                    <a href="https://wa.me/6282139742007" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">+62 821-3974-2007</a>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Printer size={14} className="text-accent flex-shrink-0 mt-0.5" />
-                    <span>Bandarejo Tama 47, Sememi, Benowo, Surabaya</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Mail size={14} className="text-accent flex-shrink-0" />
-                    <a href="mailto:ajpnirwasita@gmail.com" className="hover:text-accent transition-colors">ajpnirwasita@gmail.com</a>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Truck size={14} className="text-accent flex-shrink-0" />
-                    <span>Melayani pengiriman seluruh Indonesia</span>
-                  </li>
-                </ul>
-                <div className="mt-4">
-                  <a
-                    href="https://wa.me/6282139742007"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-accent text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-accent-hover transition-all w-full justify-center"
-                  >
-                    <Phone size={16} />
-                    Hubungi WhatsApp
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-white/10 mt-8 pt-6 text-center text-sm text-white/50">
-              &copy; {new Date().getFullYear()} PT. Nirwasita Athawidya Nusantara. Hak cipta dilindungi.
-            </div>
-          </div>
-        </footer>
+        <StoreFooter categories={categories} settings={settingsMap} />
       </div>
     );
   } catch (error) {

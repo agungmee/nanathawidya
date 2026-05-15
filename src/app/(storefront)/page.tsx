@@ -4,6 +4,7 @@ import { BannerSlider } from "@/components/storefront/banner-slider";
 import { CategoryCarousel } from "@/components/storefront/category-carousel";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { AboutGallery } from "@/components/storefront/about-gallery";
+import { StoreFooter } from "@/components/storefront/store-footer";
 import { Phone, Printer, Factory, ShieldCheck, BadgeCheck, Users, MessageSquare, FileText, CreditCard, Package, Truck, Award, Sparkles, Mail, Star } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 
@@ -24,15 +25,24 @@ async function getData() {
     const storeId = await resolveStoreId();
     if (!storeId) return { banners: [], categories: [], featured: [], waPhone: "6282139742007" };
 
-    const [banners, categories, featuredProducts, settings] = await Promise.all([
+    const [banners, categories, featuredProducts, settings, storeData] = await Promise.all([
       fetchAll<any>('banners', buildStoreFilter(storeId, 'isActive = true'), 'sortOrder'),
       fetchAll<any>('categories', buildStoreFilter(storeId), 'name'),
       fetchAll<any>('products', buildStoreFilter(storeId, 'isActive = true && isFeatured = true'), 'name'),
-      fetchAll<any>('settings', buildStoreFilter(storeId, 'key = "wa_phone"')),
+      fetchAll<any>('settings', buildStoreFilter(storeId)),
+      fetchAll<any>('stores', `id = "${storeId}"`),
     ]);
 
-    const waSetting = settings.find((s: any) => s.key === "wa_phone");
-    const waPhone = waSetting ? String(waSetting.value) : "6282139742007";
+    const store = storeData[0] || {};
+    const settingsMap: Record<string, string> = {};
+    for (const s of settings) {
+      settingsMap[s.key] = String(s.value);
+    }
+    settingsMap.company_name = store.name || "";
+    settingsMap.logo = store.logo || "";
+    settingsMap.description = store.description || "";
+
+    const waPhone = settingsMap.wa_phone || "6282139742007";
 
     const mappedBanners = banners.map((b: any) => ({
       id: b.id,
@@ -66,17 +76,17 @@ async function getData() {
       createdAt: p.created,
     }));
 
-    return { banners: mappedBanners, categories, featured: mappedFeatured, waPhone };
+    return { banners: mappedBanners, categories, featured: mappedFeatured, waPhone, settings: settingsMap };
   } catch (error) {
     console.error('PocketBase fetch error:', error);
-    return { banners: [], categories: [], featured: [], waPhone: "6282139742007" };
+    return { banners: [], categories: [], featured: [], waPhone: "6282139742007", settings: {} };
   }
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { banners, categories, featured, waPhone } = await getData();
+  const { banners, categories, featured, waPhone, settings } = await getData();
 
   return (
     <div>
@@ -216,77 +226,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-primary text-white mt-10">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <div className="font-bold text-lg mb-4">
-                PT.<span className="text-accent">Nirwasita Athawidya Nusantara</span>
-              </div>
-              <p className="text-sm text-white/70 leading-relaxed">
-                Produsen karung plastik PP woven, laminasi, BOPP, dan plastik packing custom. Kualitas terbaik, harga pabrik, melayani partai besar & kecil.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-sm mb-4 uppercase tracking-wider text-accent">Produk</h3>
-              <ul className="space-y-2 text-sm text-white/70">
-                {categories.map((cat) => (
-                  <li key={cat.id}>
-                    <Link href={`/category/${cat.slug}`} className="hover:text-accent transition-colors">{cat.name}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold text-sm mb-4 uppercase tracking-wider text-accent">Layanan</h3>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li><Link href="/contact" className="hover:text-accent transition-colors">Kontak Kami</Link></li>
-                <li><a href={`https://wa.me/${waPhone}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Konsultasi Gratis</a></li>
-                <li><span className="cursor-default">Cetak Custom Karung</span></li>
-                <li><span className="cursor-default">Cetak Plastik Packing</span></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold text-sm mb-4 uppercase tracking-wider text-accent">Kontak</h3>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li className="flex items-center gap-2">
-                  <Phone size={14} className="text-accent flex-shrink-0" />
-                  <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
-                    {waPhone.replace(/(\d{3})(\d{4})(\d{4})/, "+62 $1-$2-$3")}
-                  </a>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Printer size={14} className="text-accent flex-shrink-0 mt-0.5" />
-                  <span>Bandarejo Tama 47, Sememi, Benowo, Surabaya</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Mail size={14} className="text-accent flex-shrink-0" />
-                  <a href="mailto:ajpnirwasita@gmail.com" className="hover:text-accent transition-colors">ajpnirwasita@gmail.com</a>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Truck size={14} className="text-accent flex-shrink-0" />
-                  <span>Melayani pengiriman seluruh Indonesia</span>
-                </li>
-              </ul>
-              <div className="mt-4">
-                <a
-                  href={`https://wa.me/${waPhone}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-accent text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-accent-hover transition-all w-full justify-center"
-                >
-                  <Phone size={16} />
-                  Hubungi WhatsApp
-                </a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-white/10 mt-8 pt-6 text-center text-sm text-white/50">
-            &copy; {new Date().getFullYear()} PT. Nirwasita Athawidya Nusantara. Hak cipta dilindungi.
-          </div>
-        </div>
-      </footer>
+      <StoreFooter categories={categories} settings={settings} />
     </div>
   );
 }
