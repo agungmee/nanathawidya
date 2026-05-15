@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, ShoppingCart, Menu, X, Phone, Printer } from "lucide-react";
+import { Search, ShoppingCart, Menu, X, Phone, Printer, Home, Grid3X3 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import { useCartStore } from "@/lib/cart-store";
 import { WA_PHONE } from "@/lib/store-data";
 
@@ -73,16 +74,51 @@ export function Navbar() {
         )}
       </div>
 
+      {/* Mobile slide-in menu */}
       {menuOpen && (
-        <div className="lg:hidden bg-primary-light border-t border-white/10">
-          <nav className="flex flex-col py-2 px-4 text-sm">
-            <Link href="/" onClick={() => setMenuOpen(false)} className="py-3 hover:text-accent">Beranda</Link>
-            <Link href="/category/karung-plastik" onClick={() => setMenuOpen(false)} className="py-3 hover:text-accent">Katalog Produk</Link>
-            <Link href="/contact" onClick={() => setMenuOpen(false)} className="py-3 hover:text-accent">Kontak Kami</Link>
-            <a href={`https://wa.me/${WA_PHONE}`} onClick={() => setMenuOpen(false)} className="py-3 hover:text-accent">Konsultasi Gratis</a>
-          </nav>
+        <div className="fixed inset-0 z-[60] lg:hidden" onClick={() => setMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="absolute left-0 top-0 bottom-0 w-72 bg-primary shadow-2xl animate-slide-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <span className="font-bold text-sm">Menu</span>
+              <button onClick={() => setMenuOpen(false)} className="p-2 hover:bg-primary-light rounded-lg">
+                <X size={20} />
+              </button>
+            </div>
+            <nav className="flex flex-col py-2">
+              <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
+                <Home size={20} className="text-accent" />
+                <span className="text-sm font-medium">Beranda</span>
+              </Link>
+              <Link href="/category/karung-plastik" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
+                <Grid3X3 size={20} className="text-accent" />
+                <span className="text-sm font-medium">Katalog Produk</span>
+              </Link>
+              <Link href="/contact" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
+                <Phone size={20} className="text-accent" />
+                <span className="text-sm font-medium">Kontak Kami</span>
+              </Link>
+              <a href={`https://wa.me/${WA_PHONE}`} onClick={() => setMenuOpen(false)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 hover:bg-primary-light transition-colors">
+                <WhatsAppIcon size={20} className="text-accent" />
+                <span className="text-sm font-medium">Konsultasi Gratis</span>
+              </a>
+            </nav>
+          </div>
         </div>
       )}
+
+      <style jsx global>{`
+        @keyframes slideIn {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
+        }
+        .animate-slide-in {
+          animation: slideIn 0.25s ease-out;
+        }
+      `}</style>
     </header>
   );
 }

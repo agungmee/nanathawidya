@@ -1,20 +1,25 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface CartItem {
+export interface CartItem {
   productId: string;
   productName: string;
   price: number;
   quantity: number;
   image?: string;
+  variant?: string;
+}
+
+function cartItemKey(item: { productId: string; variant?: string }): string {
+  return item.variant ? `${item.productId}::${item.variant}` : item.productId;
 }
 
 interface CartStore {
   items: CartItem[];
   isOpen: boolean;
   addItem: (item: CartItem) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, variant?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variant?: string) => void;
   clearCart: () => void;
   toggleCart: () => void;
   openCart: () => void;
@@ -31,11 +36,12 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (item) => {
         const items = get().items;
-        const existing = items.find((i) => i.productId === item.productId);
+        const key = cartItemKey(item);
+        const existing = items.find((i) => cartItemKey(i) === key);
         if (existing) {
           set({
             items: items.map((i) =>
-              i.productId === item.productId
+              cartItemKey(i) === key
                 ? { ...i, quantity: i.quantity + item.quantity }
                 : i
             ),
@@ -45,14 +51,16 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      removeItem: (productId) => {
-        set({ items: get().items.filter((i) => i.productId !== productId) });
+      removeItem: (productId, variant) => {
+        const key = variant ? `${productId}::${variant}` : productId;
+        set({ items: get().items.filter((i) => cartItemKey(i) !== key) });
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, quantity, variant) => {
+        const key = variant ? `${productId}::${variant}` : productId;
         set({
           items: get().items.map((i) =>
-            i.productId === productId ? { ...i, quantity: Math.max(1, quantity) } : i
+            cartItemKey(i) === key ? { ...i, quantity: Math.max(1, quantity) } : i
           ),
         });
       },

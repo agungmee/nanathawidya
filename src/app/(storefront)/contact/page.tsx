@@ -8,10 +8,17 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const msg = `Halo PT. Nirwasita Athawidya Nusantara, saya ${form.name} (${form.email || form.phone}).\n\n${form.message}`;
     window.open(getWAUrl(msg), "_blank");
+
+    await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, message: form.message }),
+    }).catch(() => {});
+
     setSent(true);
     setForm({ name: "", email: "", phone: "", message: "" });
     setTimeout(() => setSent(false), 3000);

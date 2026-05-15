@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Eye } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import type { Product } from "@/types";
 import { formatPrice, getImageUrl } from "@/lib/utils";
 import { useCartStore } from "@/lib/cart-store";
@@ -9,6 +9,10 @@ import { useCartStore } from "@/lib/cart-store";
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.openCart);
+
+  const discount = product.originalPrice && product.originalPrice > product.price
+    ? Math.round((1 - product.price / product.originalPrice) * 100)
+    : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,8 +37,13 @@ export function ProductCard({ product }: { product: Product }) {
           loading="lazy"
         />
         {product.isFeatured && (
-          <span className="absolute top-2 left-2 bg-accent text-white text-[10px] font-bold px-2 py-1 rounded-full">
+          <span className="absolute top-2 left-2 bg-accent text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">
             POPULER
+          </span>
+        )}
+        {discount > 0 && (
+          <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">
+            -{discount}%
           </span>
         )}
         <button
@@ -48,11 +57,18 @@ export function ProductCard({ product }: { product: Product }) {
         <h3 className="text-sm font-semibold text-primary line-clamp-2 mb-1 min-h-[2.5rem]">
           {product.name}
         </h3>
-        <div className="flex items-center justify-between">
-          <span className="text-accent font-bold text-base">{formatPrice(product.price)}</span>
-          <span className="text-xs text-muted flex items-center gap-1">
-            <Eye size={12} />
-            Detail
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span className="text-accent font-bold text-base">
+            {product.originalPrice && product.originalPrice > product.price ? (
+              <>
+                <span className="text-xs text-muted line-through mr-1">
+                  {formatPrice(product.originalPrice)}
+                </span>
+                {formatPrice(product.price)}
+              </>
+            ) : (
+              formatPrice(product.price)
+            )}
           </span>
         </div>
       </div>

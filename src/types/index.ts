@@ -1,3 +1,22 @@
+import "next-auth";
+
+declare module "next-auth" {
+  interface User {
+    role?: string;
+    storeId?: string;
+  }
+  interface Session {
+    user: {
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      role?: string;
+      storeId?: string;
+    };
+  }
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -13,14 +32,67 @@ export interface Product {
   slug: string;
   description?: string;
   price: number;
+  originalPrice?: number;
   image?: string;
   imageUrl?: string;
   images?: string[];
   galleryUrls?: string[];
+  videoUrl?: string;
+  videoFile?: string;
+  sku?: string;
+  stock?: number;
+  minOrder?: number;
   isActive: boolean;
   isFeatured: boolean;
   category: Category;
+  storeId?: string;
   createdAt: string;
+}
+
+export interface Variant {
+  id: string;
+  name: string;
+  value: string;
+  additionalPrice?: number;
+  stock?: number;
+  productId: string;
+  storeId: string;
+}
+
+export interface Order {
+  id: string;
+  invoiceNumber: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  customerAddress?: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: string;
+  notes?: string;
+  whatsappSent?: boolean;
+  storeId: string;
+  created: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  variant?: string;
+  image?: string;
+}
+
+export interface OrderLog {
+  id: string;
+  orderId: string;
+  fromStatus?: string;
+  toStatus: string;
+  note?: string;
+  userId?: string;
+  storeId: string;
+  created: string;
 }
 
 export interface Banner {
@@ -30,7 +102,10 @@ export interface Banner {
   type: string;
   image?: string;
   url?: string;
+  linkType?: string;
   sortOrder: number;
+  isActive?: boolean;
+  storeId?: string;
 }
 
 export type SortOption = "newest" | "cheapest" | "most_expensive" | "name_az" | "name_za";

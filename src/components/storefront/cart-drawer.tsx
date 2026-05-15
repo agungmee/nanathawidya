@@ -1,18 +1,21 @@
 "use client";
 
 import { X, Minus, Plus, Trash2, ShoppingBag, Phone } from "lucide-react";
+import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/utils";
-import { getWAUrl, WA_PHONE } from "@/lib/store-data";
+import { WA_PHONE } from "@/lib/store-data";
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCartStore();
 
   const handleWhatsAppOrder = () => {
-    const message = items.map((i) => `${i.productName} x${i.quantity} = ${formatPrice(i.price * i.quantity)}`).join("\n");
-    const total = formatPrice(totalPrice());
-    const fullMessage = `Halo PT. Nirwasita Athawidya Nusantara, saya mau order:\n\n${message}\n\nTotal: ${total}\n\nMohon info pembayaran dan estimasi pengerjaan. Terima kasih.`;
-    window.open(getWAUrl(fullMessage), "_blank");
+    const lines = items.map(
+      (i) => `- ${i.productName}${i.variant ? ` (${i.variant})` : ""} x${i.quantity} = Rp ${(i.price * i.quantity).toLocaleString("id-ID")}`
+    );
+    const total = `Rp ${totalPrice().toLocaleString("id-ID")}`;
+    const message = `Halo, saya mau order:\n\n${lines.join("\n")}\n\nTotal: ${total}\n\nMohon info pembayaran dan estimasi pengerjaan. Terima kasih.`;
+    window.open(`https://wa.me/${WA_PHONE}?text=${encodeURIComponent(message)}`, "_blank");
     clearCart();
     closeCart();
   };
@@ -37,25 +40,28 @@ export function CartDrawer() {
               <div className="flex flex-col items-center justify-center h-full text-muted gap-4">
                 <ShoppingBag size={64} className="text-gray-200" />
                 <p className="font-medium">Keranjang masih kosong</p>
-                <p className="text-sm text-center max-w-xs">Tambahkan produk percetakan yang Anda butuhkan</p>
+                <p className="text-sm text-center max-w-xs">Tambahkan produk yang Anda butuhkan</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {items.map((item) => (
-                  <div key={item.productId} className="flex gap-3 bg-gray-50 rounded-xl p-3">
+                  <div key={`${item.productId}::${item.variant || ''}`} className="flex gap-3 bg-gray-50 rounded-xl p-3">
                     <img src={item.image || "/placeholder.svg"} alt={item.productName} className="w-20 h-20 object-cover rounded-lg" />
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-semibold line-clamp-2">{item.productName}</h3>
+                      {item.variant && (
+                        <p className="text-xs text-muted mt-0.5">{item.variant}</p>
+                      )}
                       <p className="text-accent font-bold mt-1">{formatPrice(item.price)}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-1 bg-white border rounded-md hover:bg-gray-100">
+                        <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variant)} className="p-1 bg-white border rounded-md hover:bg-gray-100">
                           <Minus size={14} />
                         </button>
                         <span className="w-8 text-center font-semibold text-sm">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-1 bg-white border rounded-md hover:bg-gray-100">
+                        <button onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variant)} className="p-1 bg-white border rounded-md hover:bg-gray-100">
                           <Plus size={14} />
                         </button>
-                        <button onClick={() => removeItem(item.productId)} className="ml-auto p-1 text-red-500 hover:bg-red-50 rounded-md">
+                        <button onClick={() => removeItem(item.productId, item.variant)} className="ml-auto p-1 text-red-500 hover:bg-red-50 rounded-md">
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -73,7 +79,7 @@ export function CartDrawer() {
                 <span className="text-xl font-bold text-accent">{formatPrice(totalPrice())}</span>
               </div>
               <button onClick={handleWhatsAppOrder} className="w-full flex items-center justify-center gap-2 bg-success text-white font-semibold py-3.5 rounded-xl hover:bg-green-600 transition-all active:scale-[0.98]">
-                <Phone size={18} />
+                <WhatsAppIcon size={18} />
                 Order via WhatsApp
               </button>
               <p className="text-xs text-center text-muted">Setelah klik, Anda akan diarahkan ke WhatsApp untuk konfirmasi pesanan</p>

@@ -1,7 +1,9 @@
-import { Navbar } from "@/components/storefront/navbar";
-import { BottomNav } from "@/components/storefront/bottom-nav";
-import { CartDrawer } from "@/components/storefront/cart-drawer";
+import dynamic from "next/dynamic";
 import { WhatsAppStickyButton } from "@/components/storefront/whatsapp-sticky";
+
+const Navbar = dynamic(() => import("@/components/storefront/navbar").then((m) => m.Navbar), { ssr: false });
+const BottomNav = dynamic(() => import("@/components/storefront/bottom-nav").then((m) => m.BottomNav), { ssr: false });
+const CartDrawer = dynamic(() => import("@/components/storefront/cart-drawer").then((m) => m.CartDrawer), { ssr: false });
 
 export default function StorefrontLayout({
   children,
