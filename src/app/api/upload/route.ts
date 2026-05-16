@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
     if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
 
-    const MAX_SIZE = 2 * 1024 * 1024;
+    const MAX_SIZE = 100 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "File terlalu besar (maks 2MB)" }, { status: 400 });
+      return NextResponse.json({ error: "File terlalu besar (maks 100MB)" }, { status: 400 });
     }
 
     if (!file.type.startsWith("image/")) {
