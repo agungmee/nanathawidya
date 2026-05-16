@@ -32,7 +32,7 @@ export function CategoryCarousel({ categories }: { categories: Category[] }) {
         <SwiperSlide key={cat.id}>
           <Link
             href={`/category/${cat.slug}`}
-            className="block relative aspect-[4/3] rounded-2xl overflow-hidden group"
+            className="block relative aspect-square rounded-2xl overflow-hidden group"
           >
             <img
               src={cat.image || "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800&q=80"}
