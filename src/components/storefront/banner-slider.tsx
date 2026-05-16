@@ -12,7 +12,7 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
   if (!banners.length) return null;
 
   return (
-    <section className="relative w-full aspect-[4/3] sm:aspect-[3/1] lg:aspect-[3.5/1] rounded-2xl overflow-hidden group">
+    <section className="relative w-full aspect-[3/1] rounded-2xl overflow-hidden group">
       <Swiper
         modules={[Autoplay, Pagination]}
         autoplay={{ delay: 4000, disableOnInteraction: false }}
