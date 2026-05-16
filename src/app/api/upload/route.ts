@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await res.json();
-    const url = `${PB_URL()}/api/files/uploads/${data.id}/${data.file}`;
+    const url = `/api/files/uploads/${data.id}/${data.file}`;
 
     return NextResponse.json({ url });
   } catch {

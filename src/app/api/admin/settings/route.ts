@@ -47,9 +47,14 @@ export async function GET() {
     if (!res.ok) throw new Error('Failed to fetch settings');
     const data = await res.json();
 
+    let logoUrl = store.logo || "";
+    if (logoUrl.startsWith(`${PB_URL()}/api/files/`)) {
+      logoUrl = `/api/files/${logoUrl.slice(PB_URL().length + 11)}`;
+    }
+
     const result: Record<string, unknown> = {
       company_name: store.name || "PT. Nirwasita Athawidya Nusantara",
-      logo: store.logo || "",
+      logo: logoUrl,
       description: store.description || "",
     };
 

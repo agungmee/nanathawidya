@@ -13,9 +13,14 @@ export async function GET() {
     const store = storeData.items?.[0];
     if (!store) return NextResponse.json({});
 
+    let logoUrl = store.logo || "";
+    if (logoUrl.startsWith(`${PB_URL()}/api/files/`)) {
+      logoUrl = `/api/files/${logoUrl.slice(PB_URL().length + 11)}`;
+    }
+
     const result: Record<string, unknown> = {
       company_name: store.name || "",
-      logo: store.logo || "",
+      logo: logoUrl,
       description: store.description || "",
     };
 
