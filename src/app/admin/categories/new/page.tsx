@@ -9,7 +9,10 @@ async function uploadFile(file: File): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
   const res = await fetch("/api/upload", { method: "POST", body: fd });
-  if (!res.ok) throw new Error("Upload gagal");
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Upload gagal");
+  }
   const data = await res.json();
   return data.url;
 }
@@ -31,8 +34,8 @@ export default function NewCategoryPage() {
     try {
       const url = await uploadFile(file);
       setForm({ ...form, image: url });
-    } catch {
-      setUploadError("Gagal upload gambar. Coba file lain.");
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Gagal upload gambar");
     }
     setUploading(false);
   };

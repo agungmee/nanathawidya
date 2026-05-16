@@ -40,10 +40,8 @@ export async function POST(req: NextRequest) {
     const token = await getAdminToken();
     if (!token) return NextResponse.json({ error: "Server config error" }, { status: 500 });
 
-    const bytes = await file.arrayBuffer();
-    const blob = new Blob([bytes], { type: file.type });
     const pbFormData = new FormData();
-    pbFormData.append("file", blob, file.name);
+    pbFormData.append("file", file);
 
     const res = await fetch(`${PB_URL()}/api/collections/uploads/records`, {
       method: 'POST',
@@ -52,7 +50,8 @@ export async function POST(req: NextRequest) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: "Upload ke storage gagal" }, { status: 502 });
+      const errText = await res.text().catch(() => "");
+      return NextResponse.json({ error: `Upload ke storage gagal: ${res.status} ${errText.slice(0, 200)}` }, { status: 502 });
     }
 
     const data = await res.json();
