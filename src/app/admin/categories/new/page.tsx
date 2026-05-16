@@ -1,27 +1,37 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
 
-async function uploadFile(file: File): Promise<string> {
-  const fd = new FormData();
-  fd.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: fd });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || "Upload gagal");
-  }
-  const data = await res.json();
-  return data.url;
+function uploadFile(file: File, onProgress: (pct: number) => void): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload");
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        resolve(JSON.parse(xhr.responseText).url);
+      } else {
+        try { reject(new Error(JSON.parse(xhr.responseText).error || "Upload gagal")); }
+        catch { reject(new Error("Upload gagal")); }
+      }
+    };
+    xhr.onerror = () => reject(new Error("Upload gagal"));
+    xhr.send(fd);
+  });
 }
 
 export default function NewCategoryPage() {
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({ name: "", slug: "", description: "", image: "" });
@@ -30,9 +40,10 @@ export default function NewCategoryPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadError("");
+    setUploadProgress(0);
     setUploading(true);
     try {
-      const url = await uploadFile(file);
+      const url = await uploadFile(file, setUploadProgress);
       setForm({ ...form, image: url });
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Gagal upload gambar");
@@ -50,8 +61,10 @@ export default function NewCategoryPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (res.ok) router.push("/admin/categories");
-      else {
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
         const err = await res.json().catch(() => ({}));
         setSubmitError(err.error || "Gagal menyimpan kategori");
       }
@@ -95,10 +108,15 @@ export default function NewCategoryPage() {
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 bg-gray-100 text-muted px-4 py-3 rounded-xl text-sm hover:bg-gray-200 transition-all disabled:opacity-50">
                 <Upload size={16} />
-                {uploading ? "Upload..." : "Upload"}
+                {uploading ? `${uploadProgress}%` : "Upload"}
               </button>
             </div>
           </div>
+          {uploading && (
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div className="bg-accent h-full rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          )}
           {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
           {form.image && (
             <div className="mt-2 flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
@@ -111,7 +129,7 @@ export default function NewCategoryPage() {
         {submitError && <p className="text-sm text-red-500">{submitError}</p>}
 
         <button type="submit" disabled={loading} className="w-full bg-accent text-white font-semibold py-3 rounded-xl hover:bg-accent-hover transition-all disabled:opacity-50">
-          {loading ? "Menyimpan..." : "Simpan Kategori"}
+          {saved ? "Tersimpan!" : loading ? "Menyimpan..." : "Simpan Kategori"}
         </button>
       </form>
     </div>

@@ -3,13 +3,26 @@
 import { useEffect, useState, useRef } from "react";
 import { Save, Upload } from "lucide-react";
 
-async function uploadFile(file: File): Promise<string> {
-  const fd = new FormData();
-  fd.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: fd });
-  if (!res.ok) throw new Error("Upload gagal");
-  const data = await res.json();
-  return data.url;
+function uploadFile(file: File, onProgress: (pct: number) => void): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload");
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        resolve(JSON.parse(xhr.responseText).url);
+      } else {
+        try { reject(new Error(JSON.parse(xhr.responseText).error || "Upload gagal")); }
+        catch { reject(new Error("Upload gagal")); }
+      }
+    };
+    xhr.onerror = () => reject(new Error("Upload gagal"));
+    xhr.send(fd);
+  });
 }
 
 export default function AdminSettingsPage() {
@@ -17,6 +30,8 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState("");
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
     company_name: "",
@@ -57,12 +72,14 @@ export default function AdminSettingsPage() {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setUploadError("");
+    setUploadProgress(0);
     setUploading(true);
     try {
-      const url = await uploadFile(file);
+      const url = await uploadFile(file, setUploadProgress);
       setForm({ ...form, logo: url });
-    } catch {
-      alert("Gagal upload logo");
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Gagal upload logo");
     }
     setUploading(false);
   };
@@ -112,10 +129,16 @@ export default function AdminSettingsPage() {
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 bg-gray-100 text-muted px-4 py-3 rounded-xl text-sm hover:bg-gray-200 transition-all disabled:opacity-50">
                 <Upload size={16} />
-                {uploading ? "Upload..." : "Upload"}
+                {uploading ? `${uploadProgress}%` : "Upload"}
               </button>
             </div>
           </div>
+          {uploading && (
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div className="bg-accent h-full rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          )}
+          {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
           {form.logo && (
             <div className="mt-2 flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
               <img src={form.logo} alt="logo preview" className="h-10 w-auto" />
