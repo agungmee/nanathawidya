@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("authjs.session-token")?.value
+    || req.cookies.get("__Secure-authjs.session-token")?.value
     || req.cookies.get("next-auth.session-token")?.value
     || req.cookies.get("__Secure-next-auth.session-token")?.value;
 
