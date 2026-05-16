@@ -8,13 +8,12 @@ export async function GET() {
   try {
     const slug = process.env.POCKETBASE_STORE_SLUG || 'nanathawidya';
     const storeRes = await fetch(`${PB_URL()}/api/collections/stores/records?filter=${encodeURIComponent(`slug="${slug}"`)}`, { cache: 'no-store' });
-    if (!storeRes.ok) return NextResponse.json({ pb_debug: `store fetch failed: ${storeRes.status}` });
+    if (!storeRes.ok) return NextResponse.json({});
     const storeData = await storeRes.json();
     const store = storeData.items?.[0];
-    if (!store) return NextResponse.json({ pb_debug: 'store not found', slug, pb_url: PB_URL() });
+    if (!store) return NextResponse.json({});
 
-    const rawLogo = store.logo || "";
-    let logoUrl = rawLogo;
+    let logoUrl = store.logo || "";
     if (logoUrl.startsWith(`${PB_URL()}/api/files/`)) {
       logoUrl = `/api/files/${logoUrl.slice(PB_URL().length + 11)}`;
     }
@@ -23,7 +22,6 @@ export async function GET() {
       company_name: store.name || "",
       logo: logoUrl,
       description: store.description || "",
-      _debug: { rawLogo, pbUrl: PB_URL() },
     };
 
     // Fetch key-value settings
@@ -36,9 +34,8 @@ export async function GET() {
       }
     }
 
-    const res = NextResponse.json(result);
-    return res;
-  } catch (err) {
-    return NextResponse.json({ pb_debug: `error: ${err instanceof Error ? err.message : 'unknown'}` });
+    return NextResponse.json(result);
+  } catch {
+    return NextResponse.json({});
   }
 }
