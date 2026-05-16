@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Login Admin",
+  description: "Masuk ke panel admin PT. Nirwasita Athawidya Nusantara untuk mengelola produk, kategori, banner, dan pengaturan toko.",
+};
 
 export default function LoginPage() {
   return (

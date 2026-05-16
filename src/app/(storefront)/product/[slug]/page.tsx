@@ -46,10 +46,26 @@ export async function generateMetadata({ params }: Props) {
     const storeId = await resolveStoreId();
     const product = await fetchOne<any>('products', buildStoreFilter(storeId, `slug="${params.slug}"`));
     if (!product) return { title: "Produk Tidak Ditemukan" };
+    const desc = product.description?.slice(0, 160) || `Detail produk ${product.name}`;
+    const images = [];
+    if (product.image) images.push(product.image);
+    if (product.images?.length) product.images.slice(0, 5).forEach((img: string) => images.push(img));
     return {
       title: `${product.name} | PT. Nirwasita Athawidya Nusantara`,
-      description: product.description?.slice(0, 160) || `Detail produk ${product.name}`,
-      openGraph: { title: product.name, description: product.description?.slice(0, 160), images: product.image ? [product.image] : [] },
+      description: desc,
+      openGraph: {
+        title: product.name,
+        description: desc,
+        type: "website",
+        url: `https://nanathawidya.vercel.app/product/${params.slug}`,
+        images: images.map((url: string) => ({ url })),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: product.name,
+        description: desc,
+        images: images.slice(0, 1),
+      },
     };
   } catch {
     return { title: "Produk" };

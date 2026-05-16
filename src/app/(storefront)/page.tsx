@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { resolveStoreId, buildStoreFilter } from "@/lib/pocketbase";
 import { BannerSlider } from "@/components/storefront/banner-slider";
@@ -7,6 +8,25 @@ import { AboutGallery } from "@/components/storefront/about-gallery";
 import { StoreFooter } from "@/components/storefront/store-footer";
 import { Phone, Printer, Factory, ShieldCheck, BadgeCheck, Users, MessageSquare, FileText, CreditCard, Package, Truck, Award, Sparkles, Mail, Star } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const baseUrl = process.env.POCKETBASE_URL || 'http://127.0.0.1:8090';
+    const slug = process.env.POCKETBASE_STORE_SLUG || 'nanathawidya';
+    const res = await fetch(`${baseUrl}/api/collections/stores/records?filter=${encodeURIComponent(`slug="${slug}"`)}`, { next: { revalidate: 0 } });
+    const store = (await res.json())?.items?.[0];
+    const name = store?.name || "PT. Nirwasita Athawidya Nusantara";
+    const desc = store?.description || "Produsen karung plastik PP woven, laminasi, BOPP, dan plastik packing custom.";
+    return {
+      title: name,
+      description: desc,
+      openGraph: { title: name, description: desc, url: "https://nanathawidya.vercel.app" },
+      twitter: { title: name, description: desc },
+    };
+  } catch {
+    return { title: "PT. Nirwasita Athawidya Nusantara" };
+  }
+}
 
 async function fetchAll<T>(collection: string, filter: string, sort?: string): Promise<T[]> {
   const baseUrl = process.env.POCKETBASE_URL || 'http://127.0.0.1:8090';

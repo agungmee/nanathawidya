@@ -27,6 +27,7 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
               <img
                 src={banner.image || "/placeholder.svg"}
                 alt={banner.title || "Banner"}
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />

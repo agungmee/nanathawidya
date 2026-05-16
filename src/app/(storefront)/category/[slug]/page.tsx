@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { pb, resolveStoreId, buildStoreFilter } from "@/lib/pocketbase";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -6,6 +7,21 @@ import { CategorySidebar } from "@/components/storefront/category-sidebar";
 import { CategoryChip } from "@/components/storefront/category-chip";
 import { notFound } from "next/navigation";
 import type { Product, Category } from "@/types";
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  try {
+    const storeId = await resolveStoreId();
+    const category = await pb.collection('categories').getFirstListItem(buildStoreFilter(storeId, `slug="${params.slug}"`)).catch(() => null);
+    if (!category) return { title: "Kategori" };
+    return {
+      title: `${category.name} | PT. Nirwasita Athawidya Nusantara`,
+      description: category.description || `Produk ${category.name} berkualitas dari PT. Nirwasita Athawidya Nusantara`,
+      openGraph: { title: category.name, description: category.description, images: category.image ? [category.image] : [] },
+    };
+  } catch {
+    return { title: "Kategori" };
+  }
+}
 
 export async function generateStaticParams() {
   try {

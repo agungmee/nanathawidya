@@ -1,3 +1,5 @@
+import "swiper/css";
+import "swiper/css/pagination";
 import dynamic from "next/dynamic";
 import { WhatsAppStickyButton } from "@/components/storefront/whatsapp-sticky";
 

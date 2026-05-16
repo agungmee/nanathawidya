@@ -26,8 +26,7 @@ const config: Config = {
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Playfair Display", "serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       keyframes: {
         shimmer: {
