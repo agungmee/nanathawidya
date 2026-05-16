@@ -1,16 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
+
+async function uploadFile(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch("/api/upload", { method: "POST", body: fd });
+  if (!res.ok) throw new Error("Upload gagal");
+  const data = await res.json();
+  return data.url;
+}
 
 export default function EditCategoryPage() {
   const router = useRouter();
   const params = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [form, setForm] = useState({ name: "", slug: "", description: "", image: "" });
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadFile(file);
+      setForm({ ...form, image: url });
+    } catch {
+      alert("Gagal upload gambar");
+    }
+    setUploading(false);
+  };
 
   useEffect(() => {
     fetch("/api/admin/categories")
@@ -63,8 +87,25 @@ export default function EditCategoryPage() {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-muted block mb-1">Image URL</label>
-          <input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-accent" />
+          <label className="text-xs font-semibold text-muted block mb-1">Gambar</label>
+          <div className="flex gap-3 items-start">
+            <div className="flex-1">
+              <input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-accent" placeholder="https://... atau upload" />
+            </div>
+            <div>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 bg-gray-100 text-muted px-4 py-3 rounded-xl text-sm hover:bg-gray-200 transition-all disabled:opacity-50">
+                <Upload size={16} />
+                {uploading ? "Upload..." : "Upload"}
+              </button>
+            </div>
+          </div>
+          {form.image && (
+            <div className="mt-2 flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+              <img src={form.image} alt="preview" className="h-12 w-auto rounded" />
+              <span className="text-xs text-muted">Preview</span>
+            </div>
+          )}
         </div>
 
         <button type="submit" disabled={loading} className="w-full bg-accent text-white font-semibold py-3 rounded-xl hover:bg-accent-hover transition-all disabled:opacity-50">
